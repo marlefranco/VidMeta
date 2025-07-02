@@ -321,9 +321,13 @@ def extract_timestamp_from_frame(frame, roi_x, roi_y, roi_width, roi_height):
 
             # Use pytesseract to extract text from the ROI
             try:
-                text = pytesseract.image_to_string(processed_img, config='--psm 7')
+                # Restrict characters to improve accuracy and remove newlines
+                text = pytesseract.image_to_string(
+                    processed_img,
+                    config='--psm 7 --oem 3 -c tessedit_char_whitelist=0123456789:/.- '
+                )
                 # Clean up the text
-                text = text.strip()
+                text = text.replace('\n', ' ').strip()
             except pytesseract.pytesseract.TesseractError as te:
                 print(f"Tesseract Error: {te}")
                 print("This may indicate an issue with Tesseract installation or configuration.")
@@ -429,11 +433,14 @@ def extract_timestamp_from_frame(frame, roi_x, roi_y, roi_width, roi_height):
         # Use the original grayscale image with different PSM modes
         for psm_mode in [7, 6, 3]:  # Try different page segmentation modes
             try:
-                text = pytesseract.image_to_string(gray, config=f'--psm {psm_mode}')
+                text = pytesseract.image_to_string(
+                    gray,
+                    config=f'--psm {psm_mode} --oem 3 -c tessedit_char_whitelist=0123456789:/.- '
+                )
                 print(f"Final attempt with PSM {psm_mode} - Extracted text: {text}")
 
                 # Clean up the text
-                text = text.strip()
+                text = text.replace('\n', ' ').strip()
             except pytesseract.pytesseract.TesseractError as te:
                 print(f"Tesseract Error in final attempt with PSM {psm_mode}: {te}")
                 print("This may indicate an issue with Tesseract installation or configuration.")
